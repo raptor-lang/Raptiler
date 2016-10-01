@@ -1,6 +1,8 @@
 package raptorscript
 import raptorscript.Tokens._
 import raptorscript.{ast => a}
+import a.Node
+import scala.collection.mutable.ListBuffer
 
 class Parser(lexer: Lexer) {
 
@@ -41,58 +43,56 @@ class Parser(lexer: Lexer) {
 
   private def next = lexer.get(0)
 
-  def factor = {
+  def factor: Node = {
     var un: Option[IToken] = next match {
       case PLUS | MINUS => Some(eat)
       case _ => None
     }
-    var node = next match {
+    var node: Node = next match {
       case LPAR => parens
       case NAME => access
-      case INT => a.Int(eat)
+      case INT => a.Integer(eat)
       case FLOAT => a.Float(eat)
     }
     if (un.nonEmpty)
-      a.UnaryOp(un, node)
+      a.UnaryOp(un.get, node)
     else
       node
   }
 
-  def access = a.Access(eat(NAME))
+  def access: Node = a.VarAccess(eat(NAME))
 
-  def parens = {
+  def parens: Node = {
     eat(LPAR)
     val t = expr
     eat(RPAR)
     t
   } 
 
-  def addend = {
+  def addend: Node = {
     var node = factor
-    while (beat(ASTERISK, SLASH)) {
-      node = a.BinOp(node, op, factor)
-    }
+    while (next == ASTERISK || next == SLASH)
+      node = a.BinOp(node, eat, factor)
     node
   }
 
-  def number = {
+  def number: Node = {
     var node = addend
-    while (beat(PLUS, MINUS)) {
-      node = a.BinOp(node, op, addend)
-    }
+    while (next == PLUS || next == MINUS) 
+      node = a.BinOp(node, eat, addend)
     node
   }
 
-  def expr = number
+  def expr: Node = number
 
-  def varAssign = {
+  def varAssign: Node = {
     val name = eat(NAME)
     eat(EQUALS)
     val value = expr
     a.VarAssign(name, value)
   }
 
-  def varDecl = {
+  def varDecl: Node = {
     eat(KWORD("var"))
     val name = eat(NAME)
     eat(COLON)
@@ -103,7 +103,7 @@ class Parser(lexer: Lexer) {
     a.VarDecl(name, typeName, value)
   }
 
-  def statement = {
+  def statement: Node = {
     val kvar = KWORD("var")
     val node = next match {
       case NAME | EQUALS => varAssign
@@ -113,13 +113,13 @@ class Parser(lexer: Lexer) {
     node
   }
 
-  def program = {
-    val statements = ListBuffer[Node]
+  def program: Node = {
+    val statements = ListBuffer[Node]()
     var run = true
     while (next != EOF) {
       statements += statement
     }
-    a.Program(List(statements))
+    a.Program(statements.toList)
   }
 
 }

@@ -1,6 +1,7 @@
 package raptorscript
 
 import scala.collection.mutable.{ ArrayBuffer, Queue }
+import scala.language.implicitConversions
 
 class Lexer(text: String) {
 
@@ -129,7 +130,7 @@ object Lexer {
 
 trait IToken {
   val ttype: String
-  val value: Any
+  val value: Option[Any]
 }
 
 class Token[T](val ttype: String, val value: Option[T]) extends IToken {
@@ -158,6 +159,21 @@ object Token {
 
   def apply[T](ttype: String) = {
     new Token[T](ttype)
+  }
+
+  // TODO: Get rid of this shit
+  implicit def iToken2StrToken(iToken: IToken): Token[String] = {
+    new Token[String](iToken.ttype, iToken.value.get.toString())
+  }
+
+  // TODO: Get rid of this shit
+  implicit def iToken2IntToken(iToken: IToken): Token[Int] = {
+    new Token[Int](iToken.ttype, Integer.valueOf(iToken.value.get.toString()))
+  }
+
+  // TODO: Get rid of this shit. Seriously
+  implicit def iToken2FloatToken(iToken: IToken): Token[Float] = {
+    new Token[Float](iToken.ttype, java.lang.Float.valueOf(iToken.value.get.toString()))
   }
 }
 

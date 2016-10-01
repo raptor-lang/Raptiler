@@ -3,14 +3,14 @@ package raptorscript.ast
 import raptorscript.{IToken, Token}
 
 case class BinOp(
-  left: IToken,
+  left: Node,
   token: IToken,
-  right: IToken
+  right: Node
 ) extends Node
 
 case class UnaryOp(
   op: IToken,
-  expr: IToken
+  expr: Node
 ) extends Node { val token = op}
 
 case class Integer(
@@ -18,7 +18,7 @@ case class Integer(
 ) extends Node { val value = token.value.get }
 
 case class Float(
-  token: Token[Float]
+  token: Token[scala.Float]
 ) extends Node { val value = token.value.get }
 
 case class VarAccess(
