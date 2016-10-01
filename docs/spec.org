@@ -1,0 +1,149 @@
+
+#+TITLE: RaptorScript Language Spec
+#+SUBTITLE: Draft v0.0.1
+#+SUBAUTHOR: topisani
+#+SUBAUTHOR: Vel0cityX
+#+HTML_HEAD: <link rel="stylesheet" type="text/css" href="org.css" /> <link href="https://fonts.googleapis.com/css?family=Titillium+Web:200,200i,400,400i,700,700i&subset=latin-ext" rel="stylesheet"> 
+#+OPTIONS: H:3
+* Meta
+** TODO What is RaptorScript?
+ If we knew we would tell you
+** TODO What is RaptorScript not?
+Existing for one
+
+* The language itself
+RaptorScripts Syntax is aimed at being intuitive to write, while not necessarilly sticking to convention. This is a ballance we are allways working towards.
+
+The language borrows syntax, as it does with features, from a lot of different places. Notable mentions would be rust and scala, along with python.
+
+Many of these points will have a few options, as we are still deciding on which one of them to go with.
+
+** Modules [Possibly namespaces]
+Being a scripting language at its core, RaptorScript has a global scope, and modules. A module could be considered a namespace, and is basically a group of data. Every RaptorScript program consists of at least one module, since every file is a module
+
+*** Modules belong to =.rapt= files
+Each =.rapt= file defines one module, by the name of the file (excluding the =.rapt= extension)
+*** Importing Modules
+Modules can be imported for usage inside other modules.
+*** Structure
+Modules have a hierachial structure, starting from the source directory.
+#+BEGIN_EXAMPLE
+ - project/
+   |- src/
+      |- main.rapt
+      |- ui/
+         |- self.rapt
+         |- menu.rapt
+         |- popup.rapt
+      |- util/
+         |- string.rapt
+         |- numbers.rapt
+#+END_EXAMPLE
+This structure defines the following modules:
+
+ - =main=
+ - =ui=
+ - =ui.menu=
+ - =ui.popup=
+ - =util.string=
+ - =util.numbers=
+
+*** Naming
+Module names can contain only lowercase letters and underscores. A module named =self= will simply  be referenced by its parent module. As such, the module in =src/ui/self.rapt= will be referenced simply as =ui= in other modules.
+
+It is recomended to give modules short, concise names, letting the structure handle avoiding ambiguity. As such, it is also allways recomended to reffer to modules as their fully qualified names. If these two rules are followed, the module structure will make semantic sense. As an example, use =util.numbers= instead of =util.number_utils=
+
+
+
+
+** Flow Control
+RaptorScript provides a fairly standard set of control structures. Code blocks are wrapped in ={}=, and semicolons at the end of statements are optional.
+
+Control structures in RaptorScript can take either a code block or a single expression. See specific examples below. Also, parenthesis around control statement conditionals are not required (but permitted, since wrapping an expression in parenthesis would make no difference)
+*** Conditional statements
+=if= statements in RaptorScript use the =if= keyword, take a conditional, and a statement or a code block. After the statement/codeblock, an optional =else= clause can be specified.
+#+BEGIN_SRC rapt
+if a > 4 {
+    print("a is greater than 4")
+} else if a == 4 {
+    print("a is equal to 4")
+} else {
+    print("a is less than 4")
+}
+#+END_SRC
+As mentioned, RaptorScript also provides a shorthand =if= statement, however, using this can quickly get confusing, and it is only recomended for short checks.
+
+#+CAPTION: Example of bad usage:
+#+BEGIN_SRC rapt
+if a > 4 print("a is greater than 4") else if a == 4 print("a is equal to 4") else print("a is less than 4")
+#+END_SRC
+*** Loops
+**** Infinite Loop
+#+BEGIN_SRC rapt
+loop {
+    print("I'm working")
+    sleep(3)
+    if time.now() > time.from_string("19:30") {
+        print("It's late, I'm heading home")
+        break
+    }
+}
+#+END_SRC
+**** While Loop
+#+BEGIN_SRC rapt
+while time.now() <= time.from_string("19:30") {
+    print("I'm working")
+    sleep(3)
+}
+print("It's late, I'm heading home")
+break
+#+END_SRC
+**** For Loop
+#+BEGIN_SRC rapt
+// TODO
+#+END_SRC
+*** TODO Pattern Matching
+** Functions
+*** Normal Functions
+Functions are declared using the =fun= keyword. Its arguments can (optionally) be type-annotated, just like variables, and, if the function returns a value, the return type must be specified after an arrow ->.
+
+The final expression in the function will be used as return value. Alternatively, the return statement can be used to =return= a value earlier from within the function, even from inside loops or =if= s.
+#+BEGIN_SRC rapt
+// TODO: Improve example
+fun is_odd(int a) -> bool {
+    a % 2 == 1  // No return keyword required because it's the last exprossion of the function
+}
+#+END_SRC
+*** Inline Functions
+Inline functions are syntactic sugar for writing small functions. They make use of the =:= operator, instead of the usual code block ={}= that defines functions. 
+
+The above example would be: 
+#+BEGIN_SRC rapt
+fun is_odd(int a) -> bool: a % 2 == 1
+#+END_SRC
+** Lazy evaluation
+=c= will not be calculated until it is used:
+#+BEGIN_SRC rapt
+a = 4
+b = 8
+c = <a + b>
+a = 5
+print(c) // 13
+#+END_SRC
+*** TODO Super lazy evaluation
+This needs a better syntax, but the idea is that you can assign an expression to something that expects a value, and instead of calculating the result of the expression upon assignment, the result will be calculated every time it is requested.
+
+The difference between this and a lambda, is the way the value is accessed. To evaluate a lambda, one would have to add the parenthesis for the function call, this doesnt require that (in fact, if you do it it will treat the result of the super lazy expression as a function, and try to call that).
+#+BEGIN_SRC rapt
+a = 4
+b = 8
+c = <<a + b>>
+print(c) // 12
+a = 5
+print(c) // 13
+#+END_SRC
+
+These are some other proposed names for this feature:
+ - dynamic expressions
+ - incognito lambdas
+ - live expressions
