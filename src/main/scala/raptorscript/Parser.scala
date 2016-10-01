@@ -9,12 +9,12 @@ class Parser(lexer: Lexer) {
   private def eat(): IToken = {
     val result = lexer.get()
     lexer.advance()
-    return result
+    result
   }
 
   private def eat(ttype: IToken): IToken = {
     if (next(ttype))
-      return eat()
+      eat()
     else
       throw new RaptorError()
   }
@@ -31,14 +31,14 @@ class Parser(lexer: Lexer) {
         return true
       }
     }
-    return false
+    false
   }
 
   private def next(tokens: IToken*): Boolean = {
     for ((t,i) <- tokens.zipWithIndex)
       if (lexer.get(i) != t)
         return false
-    return true
+    true
   }
 
   private def next = lexer.get(0)
