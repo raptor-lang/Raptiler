@@ -1,51 +1,56 @@
 package raptorscript
 import raptorscript.Tokens._
-import raptorscript.Token
+import raptorscript.{ast => a}
 
 class Parser(lexer: Lexer) {
 
-  private def eat(): Token = {
+  private def eat(): IToken = {
     val result = lexer.get()
     lexer.advance()
     return result
   }
 
-  private def eat(ttype: String): Token = {
+  private def eat(ttype: IToken): IToken = {
     if (next(ttype))
       return eat()
     else
       throw new RaptorError()
   }
 
-  private def eat(ttype: Token): Token = {
-    if (next(ttype))
-      return eat()
-    else
-      throw new RaptorError()
+  /**
+    * Eats the token if it is one of the suplied types.
+    * @param tokens The first matching token will be eaten.
+    * @returns true if a token was eaten
+    */
+  private def beat(tokens: IToken*): Boolean = {
+    for (token <- tokens) {
+      if (next == token) {
+        eat()
+        return true
+      }
+    }
+    return false
   }
 
-  private def next(ttype: String*): Boolean = {
-    for ((t,i) <- ttype.zipWithIndex)
-      if (lexer.get(i).ttype != t)
+  private def next(tokens: IToken*): Boolean = {
+    for ((t,i) <- tokens.zipWithIndex)
+      if (lexer.get(i) != t)
         return false
     return true
-  }
-
-  private def next(ttype: Token*): Boolean = {
-    return next(ttype.map(_.ttype):_*)
   }
 
   private def next = lexer.get(0)
 
   def factor = {
-    var un: Option[Token] = next match {
+    var un: Option[IToken] = next match {
       case PLUS | MINUS => Some(eat)
       case _ => None
     }
     var node = next match {
       case LPAR => parens
       case NAME => access
-      case NUMBER => a.Num(eat)
+      case INT => a.Int(eat)
+      case FLOAT => a.Float(eat)
     }
     if (un.nonEmpty)
       a.UnaryOp(un, node)
@@ -53,7 +58,7 @@ class Parser(lexer: Lexer) {
       node
   }
 
-  def access = a.Access(eat NAME)
+  def access = a.Access(eat(NAME))
 
   def parens = {
     eat(LPAR)
@@ -64,8 +69,7 @@ class Parser(lexer: Lexer) {
 
   def addend = {
     var node = factor
-    while (next == ASTERISK || next == SLASH) {
-      val op = eat
+    while (beat(ASTERISK, SLASH)) {
       node = a.BinOp(node, op, factor)
     }
     node
@@ -73,8 +77,7 @@ class Parser(lexer: Lexer) {
 
   def number = {
     var node = addend
-    while (next == PLUS || next == MINUS) {
-      val op = eat
+    while (beat(PLUS, MINUS)) {
       node = a.BinOp(node, op, addend)
     }
     node
@@ -83,16 +86,40 @@ class Parser(lexer: Lexer) {
   def expr = number
 
   def varAssign = {
-    val name = eat NAME
-    eat EQUALS
+    val name = eat(NAME)
+    eat(EQUALS)
     val value = expr
     a.VarAssign(name, value)
   }
 
   def varDecl = {
-    eat(Token(KWORD, "var"))
-    val name = eat NAME
+    eat(KWORD("var"))
+    val name = eat(NAME)
+    eat(COLON)
+    val typeName = eat(NAME)
+    var value: Option[Node] = None
+    if (beat(EQUALS))
+      value = Some(statement)
+    a.VarDecl(name, typeName, value)
+  }
 
+  def statement = {
+    val kvar = KWORD("var")
+    val node = next match {
+      case NAME | EQUALS => varAssign
+      case kvar => varDecl
+      case _ => expr
+    }
+    node
+  }
+
+  def program = {
+    val statements = ListBuffer[Node]
+    var run = true
+    while (next != EOF) {
+      statements += statement
+    }
+    a.Program(List(statements))
   }
 
 }

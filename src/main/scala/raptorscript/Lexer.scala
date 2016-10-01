@@ -6,9 +6,9 @@ class Lexer(text: String) {
 
   var pos: Int = 0
   var currentChar: Option[Char] = Some(text.charAt(pos))
-  private var nextToken: Option[Token] = None
-  var currentToken: Option[Token] = None
-  val futureTokens = Queue[Token]()
+  private var nextToken: Option[IToken] = None
+  var currentToken: Option[IToken] = None
+  val futureTokens = Queue[IToken]()
 
   private def lexAdvance(n: Int = 1): Unit = {
     pos += n
@@ -22,7 +22,7 @@ class Lexer(text: String) {
     nextToken == None && currentChar != None
   }
 
-  private def lex(str: String, token: Token): Unit = {
+  private def lex(str: String, token: IToken): Unit = {
     if (shouldLex()) {
       if (text.slice(pos, pos + str.length()) == str) {
         lexAdvance(str.length())
@@ -32,7 +32,7 @@ class Lexer(text: String) {
   }
 
   private def lex(str: String, ttype: String): Unit = {
-    lex(str, Token(ttype, str))
+    lex(str, IToken(ttype, str))
   }
 
   private def lexNumber(): Unit = {
@@ -43,9 +43,9 @@ class Lexer(text: String) {
         lexAdvance()
       }
       if (str.contains("."))
-        nextToken = Some(Token(Token.FLOAT, str.toFloat))
+        nextToken = Some(IToken(IToken.FLOAT, str.toFloat))
       else
-        nextToken = Some(Token(Token.INT, str.toInt))
+        nextToken = Some(IToken(IToken.INT, str.toInt))
     }
   }
 
@@ -57,41 +57,41 @@ class Lexer(text: String) {
         lexAdvance()
       }
       if (Lexer.KEYWORDS.contains(str))
-        nextToken = Some(Token(Token.KWORD, str))
+        nextToken = Some(IToken(IToken.KWORD, str))
       else
-        nextToken = Some(Token(Token.NAME, str))
+        nextToken = Some(IToken(IToken.NAME, str))
     }
   }
 
-  private def getNextToken(): Token = {
+  private def getNextToken(): IToken = {
     if (futureTokens.length > 0) {
       val token = futureTokens(0)
       futureTokens.dequeue()
       return token
     }
-    var token = Token(Token.EOF, "")
+    var token = IToken(IToken.EOF, "")
     while (currentChar == "") {
       if (currentChar.forall(Character.isSpace))
         lexAdvance()
       else {
         lexNumber()
 
-        lex("+", Token.PLUS)
-        lex("-", Token.MINUS)
-        lex("*", Token.ASTERISK)
-        lex("/", Token.SLASH)
-        lex("(", Token.LPAR)
-        lex(")", Token.RPAR)
-        lex("{", Token.LBRAC)
-        lex("}", Token.RBRAC)
-        lex("[", Token.LSQBRAC)
-        lex("]", Token.RSQBRAC)
-        lex("<", Token.LESS_THAN)
-        lex(">", Token.GREATER_THAN)
-        lex("=", Token.EQUALS)
-        lex(";", Token.EOF)
-        lex(":", Token.COLON)
-        lex(",", Token.COMMA)
+        lex("+", IToken.PLUS)
+        lex("-", IToken.MINUS)
+        lex("*", IToken.ASTERISK)
+        lex("/", IToken.SLASH)
+        lex("(", IToken.LPAR)
+        lex(")", IToken.RPAR)
+        lex("{", IToken.LBRAC)
+        lex("}", IToken.RBRAC)
+        lex("[", IToken.LSQBRAC)
+        lex("]", IToken.RSQBRAC)
+        lex("<", IToken.LESS_THAN)
+        lex(">", IToken.GREATER_THAN)
+        lex("=", IToken.EQUALS)
+        lex(";", IToken.EOF)
+        lex(":", IToken.COLON)
+        lex(",", IToken.COMMA)
 
         lexName()
 
@@ -104,13 +104,13 @@ class Lexer(text: String) {
     return token
   }
 
-  def advance(): Token = {
+  def advance(): IToken = {
     val tok = getNextToken()
     currentToken = Some(tok)
     return tok
   }
 
-  def get(index: Int = 0): Token = {
+  def get(index: Int = 0): IToken = {
     if (index == 0)
       return currentToken.get
     if (futureTokens.length < index)
@@ -127,8 +127,38 @@ object Lexer {
   )
 }
 
-case class Token(ttype: String, value: Any) {
+trait IToken {
+  val ttype: String
+  val value: Any
+}
 
+class Token[T](val ttype: String, val value: Option[T]) extends IToken {
+
+  def this(ttype: String) = {
+    this(ttype, None)
+  }
+
+  def this(ttype: String, value: T) {
+    this(ttype, Some(value))
+  }
+
+  def equals(other: IToken): Boolean = {
+    other.ttype == this.ttype
+  }
+
+  def apply(value: Any): IToken = {
+    new Token(ttype, value)
+  }
+}
+
+object Token {
+  def apply[T](ttype: String, value: T) = {
+    new Token(ttype, value)
+  }
+
+  def apply[T](ttype: String) = {
+    new Token[T](ttype)
+  }
 }
 
 object Tokens {
@@ -143,20 +173,20 @@ object Tokens {
   val AND = Token("AND", "&&")
   val OR = Token("OR", "||")
 
-  val INT = "INT"
-  val FLOAT = "FLOAT"
-  val STRING = "STRING"
-  val EOF = "EOF"
+  val INT = Token("INT")
+  val FLOAT = Token("FLOAT")
+  val STRING = Token("STRING")
+  val EOF = Token("EOF", "")
 
-  val LPAR = "("
-  val RPAR = ")"
-  val LBRAC = "{"
-  val RBRAC = "}"
-  val LSQBRAC = "["
-  val RSQBRAC = "]"
-  val LESS_THAN = "<"
-  val GREATER_THAN = ">"
+  val LPAR = Token("(", "(")
+  val RPAR = Token(")", ")")
+  val LBRAC = Token("{", "{")
+  val RBRAC = Token("}", "}")
+  val LSQBRAC = Token("[", "[")
+  val RSQBRAC = Token("]", "]")
+  val LESS_THAN = Token("<", "<")
+  val GREATER_THAN = Token(">", ">")
 
-  val KWORD = "KWORD"
-  val NAME = "NAME"
+  val KWORD = Token("KWORD")
+  val NAME = Token("NAME")
 }
