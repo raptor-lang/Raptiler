@@ -3,13 +3,15 @@ package raptorscript
 import scala.collection.mutable.{ ArrayBuffer, Queue }
 import scala.language.implicitConversions
 
-class Lexer(text: String) {
+class Lexer(var text: String) {
 
   var pos: Int = 0
   var currentChar: Option[Char] = Some(text.charAt(pos))
   private var nextToken: Option[IToken] = None
   var currentToken: Option[IToken] = None
   val futureTokens = Queue[IToken]()
+
+  advance()
 
   private def lexAdvance(n: Int = 1): Unit = {
     pos += n
@@ -33,7 +35,7 @@ class Lexer(text: String) {
   }
 
   private def lex(str: String, ttype: String): Unit = {
-    lex(str, IToken(ttype, str))
+    lex(str, Token(ttype, str))
   }
 
   private def lexNumber(): Unit = {
@@ -44,9 +46,9 @@ class Lexer(text: String) {
         lexAdvance()
       }
       if (str.contains("."))
-        nextToken = Some(IToken(IToken.FLOAT, str.toFloat))
+        nextToken = Some(Tokens.FLOAT(str.toFloat))
       else
-        nextToken = Some(IToken(IToken.INT, str.toInt))
+        nextToken = Some(Tokens.INT(str.toInt))
     }
   }
 
@@ -58,9 +60,9 @@ class Lexer(text: String) {
         lexAdvance()
       }
       if (Lexer.KEYWORDS.contains(str))
-        nextToken = Some(IToken(IToken.KWORD, str))
+        nextToken = Some(Tokens.KWORD(str))
       else
-        nextToken = Some(IToken(IToken.NAME, str))
+        nextToken = Some(Tokens.NAME(str))
     }
   }
 
@@ -70,29 +72,29 @@ class Lexer(text: String) {
       futureTokens.dequeue()
       return token
     }
-    var token = IToken(IToken.EOF, "")
+    var token = Tokens.EOF("")
     while (currentChar == "") {
       if (currentChar.forall(Character.isSpace))
         lexAdvance()
       else {
         lexNumber()
 
-        lex("+", IToken.PLUS)
-        lex("-", IToken.MINUS)
-        lex("*", IToken.ASTERISK)
-        lex("/", IToken.SLASH)
-        lex("(", IToken.LPAR)
-        lex(")", IToken.RPAR)
-        lex("{", IToken.LBRAC)
-        lex("}", IToken.RBRAC)
-        lex("[", IToken.LSQBRAC)
-        lex("]", IToken.RSQBRAC)
-        lex("<", IToken.LESS_THAN)
-        lex(">", IToken.GREATER_THAN)
-        lex("=", IToken.EQUALS)
-        lex(";", IToken.EOF)
-        lex(":", IToken.COLON)
-        lex(",", IToken.COMMA)
+        lex("+", Tokens.PLUS)
+        lex("-", Tokens.MINUS)
+        lex("*", Tokens.ASTERISK)
+        lex("/", Tokens.SLASH)
+        lex("(", Tokens.LPAR)
+        lex(")", Tokens.RPAR)
+        lex("{", Tokens.LBRAC)
+        lex("}", Tokens.RBRAC)
+        lex("[", Tokens.LSQBRAC)
+        lex("]", Tokens.RSQBRAC)
+        lex("<", Tokens.LESS_THAN)
+        lex(">", Tokens.GREATER_THAN)
+        lex("=", Tokens.EQUALS)
+        lex(";", Tokens.EOF)
+        lex(":", Tokens.COLON)
+        lex(",", Tokens.COMMA)
 
         lexName()
 
@@ -113,7 +115,11 @@ class Lexer(text: String) {
 
   def get(index: Int = 0): IToken = {
     if (index == 0)
-      return currentToken.get
+      try {
+        return currentToken.get
+      } catch {
+        case _: Throwable => println(text); throw new RaptorError()
+      }
     if (futureTokens.length < index)
       for (i <- 0 to (index - futureTokens.length)) {
         futureTokens.enqueue(getNextToken())

@@ -4,7 +4,7 @@ import raptorscript.{ast => a}
 import a.Node
 import scala.collection.mutable.ListBuffer
 
-class Parser(lexer: Lexer) {
+class Parser(val lexer: Lexer) {
 
   private def eat(): IToken = {
     val result = lexer.get()
@@ -113,7 +113,7 @@ class Parser(lexer: Lexer) {
     node
   }
 
-  def program: Node = {
+  def program: a.Program = {
     val statements = ListBuffer[Node]()
     var run = true
     while (next != EOF) {
