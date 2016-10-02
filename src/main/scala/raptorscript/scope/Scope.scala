@@ -11,6 +11,11 @@ trait Scope {
   def lookup(name: String): Option[Symbol] = symbols.get(name).orElse(parentScope.map(_.lookup(name).orNull))
 
   def define(symbol: Symbol): Unit = symbols.put(symbol.name, symbol)
+
+  override def toString(): String = {
+    val sbs: String = symbols.map(_._2.toString()).mkString(", ")
+    s"${this.getClass.getCanonicalName()}: [$sbs]"
+  }
 }
 
 class LocalScope(_parentScope: Scope) extends Scope {

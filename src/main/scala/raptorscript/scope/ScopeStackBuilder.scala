@@ -37,6 +37,7 @@ class ScopeStackBuilder(val stack: ScopeStack) extends NodeVisitor {
         val varSymbol = new VarSymbol(n.name, typeSymbol.get.name)
         stack.define(varSymbol)
       }
+      case _ ⇒
     }
   }
 }

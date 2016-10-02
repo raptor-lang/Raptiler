@@ -15,14 +15,14 @@ class Lexer(var text: String) {
 
   private def lexAdvance(n: Int = 1): Unit = {
     pos += n
-    if (pos > text.length() - 1)
+    if (pos >= text.length())
       currentChar = None
     else
       currentChar = Some(text.charAt(pos))
   }
 
   private def shouldLex(): Boolean = {
-    nextToken == None && currentChar != None
+    nextToken.isEmpty && currentChar.isDefined
   }
 
   private def lex(str: String, token: IToken): Unit = {
@@ -32,10 +32,6 @@ class Lexer(var text: String) {
         nextToken = Some(token)
       }
     }
-  }
-
-  private def lex(str: String, ttype: String): Unit = {
-    lex(str, Token(ttype, str))
   }
 
   private def lexNumber(): Unit = {
@@ -53,9 +49,9 @@ class Lexer(var text: String) {
   }
 
   private def lexName(): Unit = {
-    if (shouldLex() && currentChar.forall(c => Character.isLetter(c) || c == "_")) {
+    if (shouldLex() && currentChar.forall(c => Character.isLetter(c) || c == '_')) {
       var str = ""
-      while (currentChar.nonEmpty && currentChar.forall(c => Character.isLetter(c) || c == "_")) {
+      while (currentChar.nonEmpty && currentChar.forall(c => Character.isLetter(c) || c == '_')) {
         str += currentChar.getOrElse("")
         lexAdvance()
       }
@@ -67,13 +63,12 @@ class Lexer(var text: String) {
   }
 
   private def getNextToken(): IToken = {
-    if (futureTokens.length > 0) {
-      val token = futureTokens(0)
-      futureTokens.dequeue()
-      return token
+    if (futureTokens.nonEmpty) {
+      return futureTokens.dequeue()
     }
-    var token = Tokens.EOF("")
-    while (currentChar == "") {
+    var result = Tokens.EOF
+    var run = true
+    while (currentChar.nonEmpty && run) {
       if (currentChar.forall(Character.isSpace))
         lexAdvance()
       else {
@@ -102,9 +97,12 @@ class Lexer(var text: String) {
           lexAdvance()
           throw new RaptorError()
         }
+        result = nextToken.get
+        nextToken = None
+        run = false
       }
     }
-    return token
+    result
   }
 
   def advance(): IToken = {
@@ -138,48 +136,45 @@ trait IToken {
   val ttype: String
   val value: Option[Any]
 }
-
-class Token[T](val ttype: String, val value: Option[T]) extends IToken {
-
-  def this(ttype: String) = {
-    this(ttype, None)
+object IToken {
+  def unapply(iToken: IToken): Option[String] = {
+    Some(iToken.ttype)
   }
+}
 
-  def this(ttype: String, value: T) {
-    this(ttype, Some(value))
-  }
+case class Token[T](ttype: String) extends IToken {
+
+  override val value: Option[T] = None
 
   def equals(other: IToken): Boolean = {
     other.ttype == this.ttype
   }
 
-  def apply(value: Any): IToken = {
-    new Token(ttype, value)
+  def apply(value: T): IToken = {
+    Token[T](ttype, value)
   }
 }
 
 object Token {
-  def apply[T](ttype: String, value: T) = {
-    new Token(ttype, value)
-  }
-
-  def apply[T](ttype: String) = {
-    new Token[T](ttype)
+  def apply[T](ttype: String, vvalue: T) = {
+    new Token[T](ttype) {
+      override val value: Option[T] = Some(vvalue)
+    }
   }
 
   // TODO: Get rid of this shit
   implicit def iToken2StrToken(iToken: IToken): Token[String] = {
-    new Token[String](iToken.ttype, iToken.value.get.toString())
+    Token[String](iToken.ttype, iToken.value.get.toString())
   }
 
   // TODO: Get rid of this shit
   implicit def iToken2IntToken(iToken: IToken): Token[Int] = {
-    new Token[Int](iToken.ttype, Integer.valueOf(iToken.value.get.toString()))
+    Token[Int](iToken.ttype, Integer.valueOf(iToken.value.get.toString()))
   }
 
   // TODO: Get rid of this shit. Seriously
   implicit def iToken2FloatToken(iToken: IToken): Token[Float] = {
-    new Token[Float](iToken.ttype, java.lang.Float.valueOf(iToken.value.get.toString()))
+    Token[Float](iToken.ttype, java.lang.Float.valueOf(iToken.value.get.toString()))
   }
 }
 
@@ -195,9 +190,9 @@ object Tokens {
   val AND = Token("AND", "&&")
   val OR = Token("OR", "||")
 
-  val INT = Token("INT")
-  val FLOAT = Token("FLOAT")
-  val STRING = Token("STRING")
+  val INT = Token[Int]("INT")
+  val FLOAT = Token[Float]("FLOAT")
+  val STRING = Token[String]("STRING")
   val EOF = Token("EOF", "")
 
   val LPAR = Token("(", "(")
@@ -209,6 +204,6 @@ object Tokens {
   val LESS_THAN = Token("<", "<")
   val GREATER_THAN = Token(">", ">")
 
-  val KWORD = Token("KWORD")
-  val NAME = Token("NAME")
+  val KWORD = Token[String]("KWORD")
+  val NAME = Token[String]("NAME")
 }

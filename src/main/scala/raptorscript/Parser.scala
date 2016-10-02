@@ -22,7 +22,7 @@ class Parser(val lexer: Lexer) {
   /**
     * Eats the token if it is one of the suplied types.
     * @param tokens The first matching token will be eaten.
-    * @returns true if a token was eaten
+    * @return true if a token was eaten
     */
   private def beat(tokens: IToken*): Boolean = {
     for (token <- tokens) {
@@ -36,23 +36,30 @@ class Parser(val lexer: Lexer) {
 
   private def next(tokens: IToken*): Boolean = {
     for ((t,i) <- tokens.zipWithIndex)
-      if (lexer.get(i) != t)
-        return false
+      try {
+        if (lexer.get(i) != t)
+          return false
+      } catch {
+        case e: NoSuchElementException =>
+          return false
+      }
     true
   }
 
-  private def next = lexer.get(0)
+  private def next: IToken = lexer.get(0)
 
   def factor: Node = {
-    var un: Option[IToken] = next match {
+    val n = next
+    val un: Option[IToken] = n match {
       case PLUS | MINUS => Some(eat)
       case _ => None
     }
-    var node: Node = next match {
+    val node: Node = n match {
       case LPAR => parens
       case NAME => access
-      case INT => a.Integer(eat)
-      case FLOAT => a.Float(eat)
+      case INT => a.Integer(eat())
+      case FLOAT => a.Float(eat())
+      case _ ⇒ throw new RaptorError()
     }
     if (un.nonEmpty)
       a.UnaryOp(un.get, node)
@@ -105,11 +112,14 @@ class Parser(val lexer: Lexer) {
 
   def statement: Node = {
     val kvar = KWORD("var")
-    val node = next match {
-      case NAME | EQUALS => varAssign
-      case kvar => varDecl
-      case _ => expr
-    }
+    var node: Node = null
+    if (next(NAME, EQUALS))
+      node = varAssign
+    else
+      node = next match {
+        case `kvar` => varDecl
+        case _ => expr
+      }
     node
   }
 

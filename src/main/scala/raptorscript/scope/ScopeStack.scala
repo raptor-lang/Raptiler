@@ -1,8 +1,12 @@
 package raptorscript.scope
 
+import raptorscript.scope.BuiltInTypeSymbol
+
 class ScopeStack {
   val globalScope = new GlobalScope()
   private var _currentScope: Scope = globalScope
+
+  define(new BuiltInTypeSymbol("INT"))
 
   def currentScope = _currentScope
 
