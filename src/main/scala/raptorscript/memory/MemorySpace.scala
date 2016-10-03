@@ -2,17 +2,18 @@ package raptorscript.memory
 
 import scala.collection.mutable.Map
 
-import raptorscript.scope.FunSymbol
+import raptorscript.symbol.FunSymbol
+import raptorscript.interpreter.RObject
 
 
 class MemorySpace(val name: String) {
-  private val members: Map[String, Any] = Map()
+  private val members: Map[String, RObject] = Map()
 
-  def get(name: String): Option[Any] = {
+  def get(name: String): Option[RObject] = {
     members.get(name)
   }
 
-  def define(name: String, value: Any): Unit = {
+  def define(name: String, value: RObject): Unit = {
     members.put(name, value)
   }
 

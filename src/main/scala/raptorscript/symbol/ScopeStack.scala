@@ -1,12 +1,14 @@
-package raptorscript.scope
+package raptorscript.symbol
 
-import raptorscript.scope.BuiltInTypeSymbol
+import scala.collection.mutable.Stack
+
 
 class ScopeStack {
-  val globalScope = new GlobalScope()
+  val globalScope = GlobalScope
   private var _currentScope: Scope = globalScope
+  private var lastScopes: Stack[Scope] = Stack()
 
-  define(new BuiltInTypeSymbol("INT"))
+  define(SInteger)
 
   def currentScope = _currentScope
 
@@ -17,4 +19,8 @@ class ScopeStack {
   def define(symbol: Symbol): Unit = _currentScope.define(symbol)
 
   def lookup(name: String): Option[Symbol] = _currentScope.lookup(name)
+
+  def enter(scope: Scope): Unit = lastScopes.push(scope)
+
+  def exit(): Scope = lastScopes.pop()
 }

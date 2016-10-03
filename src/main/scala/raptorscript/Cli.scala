@@ -2,6 +2,8 @@ package raptorscript
 
 import Console._
 
+import raptorscript.interpreter.Interpreter
+
 object Cli extends App {
   val interpreter = new Interpreter()
   println(s"$BOLD${GREEN}Welcome to$BOLD$MAGENTA RaptorScript$BOLD$GREEN - When you see it, its already too late$RESET")

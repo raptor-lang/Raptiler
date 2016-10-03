@@ -128,7 +128,8 @@ class Lexer(var text: String) {
 
 object Lexer {
   val KEYWORDS = List(
-    "var"
+    "var",
+    "fun"
   )
 }
 

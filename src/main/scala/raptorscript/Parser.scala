@@ -67,7 +67,20 @@ class Parser(val lexer: Lexer) {
       node
   }
 
-  def access: Node = a.VarAccess(eat(NAME))
+  def access: Node = {
+    val name = eat(NAME)
+    if (next == LPAR) {
+      eat(LPAR)
+      val args = ListBuffer[Node]()
+      while (next != RPAR) {
+        args += expr
+      }
+      eat(RPAR)
+      a.FunCall(name, args.toList)
+    }
+    else
+      a.VarAccess(name)
+  }
 
   def parens: Node = {
     eat(LPAR)
@@ -99,7 +112,7 @@ class Parser(val lexer: Lexer) {
     a.VarAssign(name, value)
   }
 
-  def varDecl: Node = {
+  def varDecl: a.VarDecl = {
     eat(KWORD("var"))
     val name = eat(NAME)
     eat(COLON)
@@ -110,16 +123,38 @@ class Parser(val lexer: Lexer) {
     a.VarDecl(name, typeName, value)
   }
 
+  def funDecl: a.FunDecl = {
+    eat(KWORD("fun"))
+    val name = eat(NAME)
+    eat(LPAR)
+    val xs = ListBuffer[a.VarDecl]()
+    while (next != RPAR) {
+      xs += varDecl
+    }
+    eat(RPAR)
+    eat(COLON)
+    val typ = eat(NAME)
+    eat(LBRAC)
+    val xs2 = ListBuffer[Node]()
+    while (next != RBRAC) {
+      xs2 += statement
+    }
+    eat(RBRAC)
+    a.FunDecl(name, typ, a.FunVars(xs.toList), new a.FunBody(xs2.toList))
+  }
+
   def statement: Node = {
-    val kvar = KWORD("var")
     var node: Node = null
     if (next(NAME, EQUALS))
       node = varAssign
     else
-      node = next match {
-        case `kvar` => varDecl
-        case _ => expr
+    if (next == KWORD)
+      node = next.asInstanceOf[Token[String]].value.get match {
+        case "var" => varDecl
+        case "fun" => funDecl
       }
+    else
+      node = expr
     node
   }
 
