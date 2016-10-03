@@ -55,6 +55,8 @@ class Parser(val lexer: Lexer) {
       val args = ListBuffer[Node]()
       while (next != RPAR) {
         args += expr()
+        if (next != RPAR)
+          eat(COMMA)
       }
       eat(RPAR)
       a.FunCall(name, args.toList)
@@ -125,6 +127,8 @@ class Parser(val lexer: Lexer) {
     val xs = ListBuffer[a.VarDecl]()
     while (next != RPAR) {
       xs += funArg
+      if (next != RPAR)
+        eat(COMMA)
     }
     eat(RPAR)
     eat(COLON)

@@ -39,6 +39,11 @@ class Interpreter() {
         memStack.lookup(n.name).get
       case n: Block => n.list.map(exec).last
       case n: FunCall => {
+        // HACKHACKEDYHACKHACK
+        if (n.name == "print") {
+          n.args.foreach(a => println(exec(a)))
+          return RNull
+        }
         val fs = scopeStack.lookup(n.name).get.asInstanceOf[FunSymbol]
         scopeStack.push(fs)
         memStack.push(new FunctionSpace(fs))
