@@ -12,11 +12,11 @@ class Parser(val lexer: Lexer) {
     result
   }
 
-  private def eat(ttype: IToken): IToken = {
-    if (next(ttype))
+  private def eat(ttype: IToken*): IToken = {
+    if (ttype.contains(next))
       eat()
     else
-      throw new RaptorError()
+      throw new RaptorError(s"Unexpected token $next. Expected $ttype")
   }
 
   /**
@@ -48,32 +48,13 @@ class Parser(val lexer: Lexer) {
 
   private def next: IToken = lexer.get(0)
 
-  def factor: Node = {
-    val n = next
-    val un: Option[IToken] = n match {
-      case PLUS | MINUS => Some(eat)
-      case _ => None
-    }
-    val node: Node = n match {
-      case LPAR => parens
-      case NAME => access
-      case INT => a.Integer(eat())
-      case FLOAT => a.Float(eat())
-      case _ ⇒ throw new RaptorError()
-    }
-    if (un.nonEmpty)
-      a.UnaryOp(un.get, node)
-    else
-      node
-  }
-
   def access: Node = {
     val name = eat(NAME)
     if (next == LPAR) {
       eat(LPAR)
       val args = ListBuffer[Node]()
       while (next != RPAR) {
-        args += expr
+        args += expr()
       }
       eat(RPAR)
       a.FunCall(name, args.toList)
@@ -84,31 +65,45 @@ class Parser(val lexer: Lexer) {
 
   def parens: Node = {
     eat(LPAR)
-    val t = expr
+    val t = expr()
     eat(RPAR)
     t
   } 
 
-  def addend: Node = {
-    var node = factor
-    while (next == ASTERISK || next == SLASH)
-      node = a.BinOp(node, eat, factor)
+  def expr(opLevl: Int = 0): Node = {
+    var node: Node = null
+    node = next match {
+      case LPAR => parens
+      case NAME => access
+      case LBRAC => block
+      case KWORD => {
+        next.asInstanceOf[Token[String]].value.get match {
+          case "true" => a.LitteralBool(eat, true)
+          case "false" => a.LitteralBool(eat, false)
+        }
+      }
+      case STRING => a.LitteralString(eat)
+      case INT => a.LitteralInt(eat())
+      case FLOAT => a.LitteralFloat(eat(FLOAT))
+    }
+
+    // Operator precedence. Highest orders on top
+    if (opLevl >= -2) 
+      while (next == ASTERISK || next == SLASH)
+        node = a.BinOp(node, eat, expr(-2))
+    if (opLevl >= -1) 
+      while (next == PLUS || next == MINUS)
+        node = a.BinOp(node, eat, expr(-1))
+    if (opLevl >= 0) 
+      if (List(EQEQ, NEQ, LESS_THAN, GREATER_THAN, LTEQ, GTEQ).contains(next))
+        node = a.BinOp(node, eat, expr(0))
     node
   }
-
-  def number: Node = {
-    var node = addend
-    while (next == PLUS || next == MINUS) 
-      node = a.BinOp(node, eat, addend)
-    node
-  }
-
-  def expr: Node = number
 
   def varAssign: Node = {
     val name = eat(NAME)
     eat(EQUALS)
-    val value = expr
+    val value = expr()
     a.VarAssign(name, value)
   }
 
@@ -129,38 +124,65 @@ class Parser(val lexer: Lexer) {
     eat(LPAR)
     val xs = ListBuffer[a.VarDecl]()
     while (next != RPAR) {
-      xs += varDecl
+      xs += funArg
     }
     eat(RPAR)
     eat(COLON)
     val typ = eat(NAME)
-    eat(LBRAC)
-    val xs2 = ListBuffer[Node]()
-    while (next != RBRAC) {
-      xs2 += statement
+    eat(EQUALS)
+    val blck = block
+    a.FunDecl(name, typ, a.FunVars(xs.toList), blck)
+  }
+
+  def funArg: a.VarDecl = {
+    val name = eat(NAME)
+    eat(COLON)
+    val typeName = eat(NAME)
+    a.VarDecl(name, typeName, None)
+  }
+
+  def ifStatement: Node = {
+    eat(KWORD)
+    val ex = expr()
+    val blck = block
+    var els: Option[a.Block] = None
+    if (beat(KWORD("else"))) {
+      els = Some(block)
     }
-    eat(RBRAC)
-    a.FunDecl(name, typ, a.FunVars(xs.toList), new a.FunBody(xs2.toList))
+    new a.IfStatement(ex, blck, els)
+  }
+
+  def block: a.Block = {
+    val statements = ListBuffer[Node]()
+    if (beat(LBRAC)) {
+      while (next != RBRAC) {
+        statements += statement
+      }
+      eat(RBRAC)
+    }
+    statements += statement
+    a.Block(statements.toList)
   }
 
   def statement: Node = {
     var node: Node = null
-    if (next(NAME, EQUALS))
+    if (next(NAME, EQUALS)) {
       node = varAssign
-    else
-    if (next == KWORD)
+    } else if (next == KWORD) {
       node = next.asInstanceOf[Token[String]].value.get match {
         case "var" => varDecl
         case "fun" => funDecl
+        case "if" => ifStatement
+        case _ => expr()
       }
-    else
-      node = expr
+    } else
+      node = expr()
+    beat(SEMICOLON)
     node
   }
 
   def program: a.Program = {
     val statements = ListBuffer[Node]()
-    var run = true
     while (next != EOF) {
       statements += statement
     }

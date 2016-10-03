@@ -1,16 +1,11 @@
 package raptorscript.interpreter
 
-import raptorscript.symbol.{Type, BuiltInTypeSymbol}
+import raptorscript.symbol._
+import raptorscript.IToken
 import raptorscript.memory.MemorySpace
 
 
 class RObject(val oType: Type)
-
-class RPrimitive[T](override val oType: BuiltInTypeSymbol, val value: T) extends RObject(oType) {
-  override def toString(): String = {
-    value.toString()
-  }
-}
 
 class RInstance(override val oType: Type) extends RObject(oType) {
 
@@ -18,4 +13,8 @@ class RInstance(override val oType: Type) extends RObject(oType) {
 }
 
 object RNullType extends Type {override val name = "NULL" }
-object RNull extends RObject(RNullType)
+object RNull extends RObject(RNullType) {
+  override def toString(): String = {
+    "NULL"
+  }
+}

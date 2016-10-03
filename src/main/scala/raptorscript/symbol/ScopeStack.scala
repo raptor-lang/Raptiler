@@ -9,6 +9,9 @@ class ScopeStack {
   private var lastScopes: Stack[Scope] = Stack()
 
   define(SInteger)
+  define(SBool)
+  define(SFloat)
+  define(SString)
 
   def currentScope = _currentScope
 

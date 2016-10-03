@@ -37,7 +37,7 @@ class Lexer(var text: String) {
   private def lexNumber(): Unit = {
     if (shouldLex() && currentChar.forall(Character.isDigit)) {
       var str = ""
-      while (currentChar.nonEmpty && currentChar.forall(c => Character.isDigit(c) || c == ".")) {
+      while (currentChar.nonEmpty && currentChar.forall(c => Character.isDigit(c) || c == '.')) {
         str += currentChar.getOrElse("")
         lexAdvance()
       }
@@ -47,6 +47,25 @@ class Lexer(var text: String) {
         nextToken = Some(Tokens.INT(str.toInt))
     }
   }
+
+  private def lexString(): Unit = {
+    if (shouldLex() && currentChar.forall(c => c == '\"' || c == '\'')) {
+      val delim = currentChar.get
+      lexAdvance()
+      var str = ""
+      while (shouldLex()) {
+        if (currentChar.forall(c => c == delim)) {
+          lexAdvance()
+          nextToken = Some(Tokens.STRING(str))
+          return
+        }
+        str += currentChar.getOrElse("")
+        lexAdvance()
+      }
+      throw new RaptorError(s"Unfinished string $delim$str")
+    }
+  }
+
 
   private def lexName(): Unit = {
     if (shouldLex() && currentChar.forall(c => Character.isLetter(c) || c == '_')) {
@@ -73,6 +92,7 @@ class Lexer(var text: String) {
         lexAdvance()
       else {
         lexNumber()
+        lexString()
 
         lex("+", Tokens.PLUS)
         lex("-", Tokens.MINUS)
@@ -84,10 +104,14 @@ class Lexer(var text: String) {
         lex("}", Tokens.RBRAC)
         lex("[", Tokens.LSQBRAC)
         lex("]", Tokens.RSQBRAC)
+        lex("<=", Tokens.LTEQ)
+        lex(">=", Tokens.GTEQ)
+        lex("==", Tokens.EQEQ)
+        lex("!=", Tokens.NEQ)
         lex("<", Tokens.LESS_THAN)
         lex(">", Tokens.GREATER_THAN)
         lex("=", Tokens.EQUALS)
-        lex(";", Tokens.EOF)
+        lex(";", Tokens.SEMICOLON)
         lex(":", Tokens.COLON)
         lex(",", Tokens.COMMA)
 
@@ -95,7 +119,7 @@ class Lexer(var text: String) {
 
         if (nextToken.isEmpty) {
           lexAdvance()
-          throw new RaptorError()
+          throw new RaptorError(s"Unrecognized character ${currentChar.get}")
         }
         result = nextToken.get
         nextToken = None
@@ -118,18 +142,24 @@ class Lexer(var text: String) {
       } catch {
         case _: Throwable => println(text); throw new RaptorError()
       }
-    if (futureTokens.length < index)
-      for (i <- 0 to (index - futureTokens.length)) {
+    if (futureTokens.length < index) {
+      val i2 = index - futureTokens.length
+      for (i <- 0 until i2) {
         futureTokens.enqueue(getNextToken())
       }
-    return futureTokens.get(index).get
+    }
+    futureTokens.get(index - 1).get
   }
 }
 
 object Lexer {
   val KEYWORDS = List(
     "var",
-    "fun"
+    "fun",
+    "if",
+    "else",
+    "true",
+    "false"
   )
 }
 
@@ -185,7 +215,12 @@ object Tokens {
   val ASTERISK = Token("*", "*")
   val SLASH = Token("/", "/")
   val EQUALS = Token("=", "=")
+  val EQEQ = Token("==", "==")
+  val NEQ = Token("!=", "!=")
+  val GTEQ = Token(">=", "<=")
+  val LTEQ = Token("<=", ">=")
   val COLON = Token(":", ":")
+  val SEMICOLON = Token(";", ";")
   val COMMA = Token(",", ",")
   val NOT = Token("NOT", "!")
   val AND = Token("AND", "&&")

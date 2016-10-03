@@ -14,12 +14,21 @@ case class UnaryOp(
   expr: Node
 ) extends Node { val token = op}
 
-case class Integer(
+case class LitteralInt(
   token: Token[Int]
 ) extends Node { val value = token.value.get }
 
-case class Float(
+case class LitteralFloat(
   token: Token[scala.Float]
+) extends Node { val value = token.value.get }
+
+case class LitteralBool(
+  token: Token[String],
+  value: Boolean
+) extends Node 
+
+case class LitteralString(
+  token: Token[String]
 ) extends Node { val value = token.value.get }
 
 case class VarAccess(
@@ -50,15 +59,17 @@ case class FunDecl(
   nameToken: Token[String],
   typeToken: Token[String],
   args: FunVars,
-  body: FunBody
+  body: Block
 ) extends Node {
   val name = nameToken.value.get
   val retType = typeToken.value.get
 }
 
+case class IfStatement(cond: Node, block: Block, elseBlock: Option[Block]) extends Node
+
 case class FunVars(list: List[VarDecl]) extends Node
 
-case class FunBody(list: List[Node]) extends Node
+case class Block(list: List[Node]) extends Node
 
 case class Program(
   children: List[Node]

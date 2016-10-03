@@ -20,7 +20,7 @@ class ScopeStackBuilder(val stack: ScopeStack) extends NodeVisitor {
         n.children.foreach(visit)
       }
       case n: FunVars => n.list.foreach(visit)
-      case n: FunBody => n.list.foreach(visit)
+      case n: Block => n.list.foreach(visit)
       case n: FunDecl => {
         val funSymbol = new FunSymbol(
           n.name,
@@ -39,6 +39,11 @@ class ScopeStackBuilder(val stack: ScopeStack) extends NodeVisitor {
         val typeSymbol = stack.lookup(n.vType)
         val varSymbol = new VarSymbol(n.name, stack.lookup(typeSymbol.get.name).get.asInstanceOf[Type])
         stack.define(varSymbol)
+      }
+      case n: Block => n.list.foreach(visit)
+      case n: IfStatement => {
+        visit(n.block)
+        n.elseBlock.foreach(visit)
       }
       case _ ⇒
     }
