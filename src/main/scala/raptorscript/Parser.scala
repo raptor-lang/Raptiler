@@ -163,8 +163,8 @@ class Parser(val lexer: Lexer) {
         statements += statement
       }
       eat(RBRAC)
-    }
-    statements += statement
+    } else
+      statements += statement
     a.Block(statements.toList)
   }
 

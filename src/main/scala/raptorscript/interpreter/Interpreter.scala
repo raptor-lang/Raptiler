@@ -41,7 +41,7 @@ class Interpreter() {
       case n: FunCall => {
         // HACKHACKEDYHACKHACK
         if (n.name == "print") {
-          n.args.foreach(a => println(exec(a)))
+          println(n.args.map(exec).mkString)
           return RNull
         }
         val fs = scopeStack.lookup(n.name).get.asInstanceOf[FunSymbol]
@@ -51,8 +51,8 @@ class Interpreter() {
           throw new raptorscript.RaptorError()
         for ((s, i) <- fs.symbols.values.zipWithIndex) {
           val v = exec(n.args(i))
-          if (v.oType != s.asInstanceOf[VarSymbol].vType)
-            throw new raptorscript.RaptorError("Trying to assign value incompatible type to variable")
+          //if (v.oType != s.asInstanceOf[VarSymbol].vType)
+            //throw new raptorscript.RaptorError("Trying to assign value incompatible type to variable")
           memStack.define(s.name, v)
         }
         scopeStack.push(fs.bodyScope)

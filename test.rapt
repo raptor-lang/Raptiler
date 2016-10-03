@@ -1,2 +1,32 @@
-var x = 32
-var y = x^2
+var x: INT = 2
+var y: INT = 5
+
+fun doublesum(x: INT, y: INT): INT = 2 * (x + y)
+
+print("2 * (4 + 2) = ", doublesum(4,2))
+
+fun fibonacci(i: INT): INT = {
+  var r: INT = {
+    if i == 1 {
+      print("--- FIBONACCI ---")
+      1
+    } else
+      (fibonacci(i - 1) + fibonacci(i - 2))
+  }
+  print(i,": ",r)
+  r
+}
+
+print("There is a fibonacci test function avaliable, called just that. Abuse it, please!")
+
+x = 2
+print("x = 2")
+
+fun testConds(i: INT): INT = {
+  if i == 1
+    print ("i == 1")
+  else if x == 2
+    print("x == 2 && i != 1")
+  else
+    print("x != 2 && i != 1")
+}
