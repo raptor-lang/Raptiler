@@ -92,13 +92,13 @@ class Parser(val lexer: Lexer) {
     // Operator precedence. Highest orders on top
     if (opLevl >= -2) 
       while (next == ASTERISK || next == SLASH)
-        node = a.BinOp(node, eat, expr(-2))
+        node = a.BinOp(node, eat, expr(-3))
     if (opLevl >= -1) 
       while (next == PLUS || next == MINUS)
-        node = a.BinOp(node, eat, expr(-1))
+        node = a.BinOp(node, eat, expr(-2))
     if (opLevl >= 0) 
       if (List(EQEQ, NEQ, LESS_THAN, GREATER_THAN, LTEQ, GTEQ).contains(next))
-        node = a.BinOp(node, eat, expr(0))
+        node = a.BinOp(node, eat, expr(-1))
     node
   }
 
