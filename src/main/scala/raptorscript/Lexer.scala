@@ -34,6 +34,14 @@ class Lexer(var text: String) {
     }
   }
 
+  private def skipComments(): Unit = {
+    if (shouldLex() && currentChar.forall(c => c == '#')) {
+      while (shouldLex && currentChar.forall(c => c != '\n')) {
+        lexAdvance()
+      }
+    }
+  }
+
   private def lexNumber(): Unit = {
     if (shouldLex() && currentChar.forall(Character.isDigit)) {
       var str = ""
@@ -70,7 +78,7 @@ class Lexer(var text: String) {
   private def lexName(): Unit = {
     if (shouldLex() && currentChar.forall(c => Character.isLetter(c) || c == '_')) {
       var str = ""
-      while (currentChar.nonEmpty && currentChar.forall(c => Character.isLetter(c) || c == '_')) {
+      while (currentChar.nonEmpty && currentChar.forall(c => Character.isLetter(c) || Character.isDigit(c) || c == '_')) {
         str += currentChar.getOrElse("")
         lexAdvance()
       }
@@ -88,6 +96,7 @@ class Lexer(var text: String) {
     var result = Tokens.EOF
     var run = true
     while (currentChar.nonEmpty && run) {
+      skipComments()
       if (currentChar.forall(Character.isSpace))
         lexAdvance()
       else {
