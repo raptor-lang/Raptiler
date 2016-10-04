@@ -5,6 +5,11 @@ fun doublesum(x: INT, y: INT): INT = 2 * (x + y)
 
 print("2 * (4 + 2) = ", doublesum(4,2))
 
+# THIS IS A COMMENT
+# Comments start with a # and go until the end of the line.
+# // for line comments is also possible
+# if we do keep the # form, block comments could use something like #= =# as delimiters
+
 fun fibonacci(i: INT): INT = {
   var r: INT = {
     if i <= 1 
