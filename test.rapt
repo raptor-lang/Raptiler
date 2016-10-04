@@ -7,13 +7,11 @@ print("2 * (4 + 2) = ", doublesum(4,2))
 
 fun fibonacci(i: INT): INT = {
   var r: INT = {
-    if i == 1 {
-      print("--- FIBONACCI ---")
+    if i <= 1 
       1
-    } else
+    else
       (fibonacci(i - 1) + fibonacci(i - 2))
   }
-  print(i,": ",r)
   r
 }
 
@@ -30,3 +28,5 @@ fun testConds(i: INT): INT = {
   else
     print("x != 2 && i != 1")
 }
+
+fibonacci(5)

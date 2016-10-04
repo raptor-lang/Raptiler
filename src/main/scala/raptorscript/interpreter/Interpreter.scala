@@ -11,7 +11,7 @@ import raptorscript.memory.{MemoryStack, MemorySpace, FunctionSpace}
 class Interpreter() {
   val scopeStack = new ScopeStack()
   val ast = ListBuffer[Node]()
-  val ssb = new ScopeStackBuilder(scopeStack)
+  val ssb = new SymbolTableBuilder(scopeStack.symtab)
   val memStack = new MemoryStack()
 
   def interpret(parser: Parser): Any = {

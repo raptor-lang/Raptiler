@@ -5,7 +5,7 @@ import raptorscript.ast.Node
 import raptorscript.ast._
 import raptorscript.RaptorError
 
-class ScopeStackBuilder(val stack: ScopeStack) extends NodeVisitor {
+class SymbolTableBuilder(val symtab: SymbolTable) extends NodeVisitor {
 
   def visit(node: Node): Unit = {
     node match {
@@ -24,21 +24,21 @@ class ScopeStackBuilder(val stack: ScopeStack) extends NodeVisitor {
       case n: FunDecl => {
         val funSymbol = new FunSymbol(
           n.name,
-          stack.lookup(n.retType).get.asInstanceOf[Type],
-          stack.currentScope,
+          symtab.lookup(n.retType).get.asInstanceOf[Type],
+          symtab.currentScope,
           n.body)
-        stack.define(funSymbol)
-        stack.push(funSymbol)
+        symtab.define(funSymbol)
+        symtab.push(funSymbol)
         n.args.list.foreach(visit)
-        stack.push(funSymbol.bodyScope)
+        symtab.push(funSymbol.bodyScope)
         n.body.list.foreach(visit)
-        stack.pop()
-        stack.pop()
+        symtab.pop()
+        symtab.pop()
       }
       case n: VarDecl => {
-        val typeSymbol = stack.lookup(n.vType)
-        val varSymbol = new VarSymbol(n.name, stack.lookup(typeSymbol.get.name).get.asInstanceOf[Type])
-        stack.define(varSymbol)
+        val typeSymbol = symtab.lookup(n.vType)
+        val varSymbol = new VarSymbol(n.name, symtab.lookup(typeSymbol.get.name).get.asInstanceOf[Type])
+        symtab.define(varSymbol)
       }
       case n: Block => n.list.foreach(visit)
       case n: IfStatement => {

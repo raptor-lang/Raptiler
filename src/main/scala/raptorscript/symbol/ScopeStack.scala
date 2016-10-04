@@ -2,11 +2,9 @@ package raptorscript.symbol
 
 import scala.collection.mutable.Stack
 
-
-class ScopeStack {
+class SymbolTable {
   val globalScope = GlobalScope
   private var _currentScope: Scope = globalScope
-  private var lastScopes: Stack[Scope] = Stack()
 
   define(SInteger)
   define(SBool)
@@ -22,8 +20,20 @@ class ScopeStack {
   def define(symbol: Symbol): Unit = _currentScope.define(symbol)
 
   def lookup(name: String): Option[Symbol] = _currentScope.lookup(name)
+}
 
-  def enter(scope: Scope): Unit = lastScopes.push(scope)
 
-  def exit(): Scope = lastScopes.pop()
+class ScopeStack {
+  val symtab = new SymbolTable()
+  private var stack: Stack[Scope] = Stack(GlobalScope)
+
+  def currentScope = stack.top
+
+  def push(scope: Scope): Unit = stack.push(scope)
+
+  def pop(): Unit = stack.pop()
+
+  def define(symbol: Symbol): Unit = currentScope.define(symbol)
+
+  def lookup(name: String): Option[Symbol] = currentScope.lookup(name)
 }
