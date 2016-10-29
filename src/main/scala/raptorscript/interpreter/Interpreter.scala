@@ -1,11 +1,11 @@
 package raptorscript.interpreter
 
+import raptorscript.RaptorError
 import scala.collection.mutable.{ ListBuffer, Stack }
 
 import raptorscript.Parser
 import raptorscript.symbol._
 import raptorscript.ast._
-import raptorscript.Tokens._
 import raptorscript.memory.{MemoryStack, MemorySpace, FunctionSpace}
 
 class Interpreter() {
@@ -27,11 +27,17 @@ class Interpreter() {
         var v: RObject = RNull
         if (n.value.isDefined)
           v = exec(n.value.get)
+          if (scopeStack.lookup(n.name).get.typ != v.oType) {
+            throw new RaptorError("TYPE MISMATCH")
+          }
           memStack.define(n.name, v)
           v
       }
       case n: VarAssign => {
         val v = exec(n.value)
+        if (scopeStack.lookup(n.name).get.typ != v.oType) {
+          throw new RaptorError("TYPE MISMATCH")
+        }
         memStack.update(n.name, v)
         v
       }

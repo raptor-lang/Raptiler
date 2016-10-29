@@ -2,27 +2,31 @@ package raptorscript.symbol
 
 import raptorscript.ast.Node
 
-class Symbol(val name: String) {
+class Symbol(val name: String, val typ: Type) {
 }
 
 trait Type extends Scope {
   val name: String
 }
 
-class BuiltInTypeSymbol(override val name: String) extends Symbol(name) with Type {
+object TypeType extends Type {
+  val name = "TYPE"
+}
+
+class BuiltInTypeSymbol(override val name: String) extends Symbol(name, TypeType) with Type {
   override def toString(): String = {
     s"$name: BLTINTYPE"
   }
 }
 
-class ClassSymbol(override val name: String) extends Symbol(name) with Type
+class ClassSymbol(override val name: String) extends Symbol(name, TypeType) with Type
 
 class FunSymbol(
   _name: String,
   val retType: Type,
   _parentScope: Scope,
   val body: Node
-) extends Symbol(_name) with Scope {
+) extends Symbol(_name, retType) with Scope {
   override val parentScope: Option[Scope] = Some(_parentScope)
   val bodyScope: FunScope = new FunScope(this)
 
@@ -32,7 +36,7 @@ class FunSymbol(
 
 }
 
-class VarSymbol(override val name: String, val vType: Type) extends Symbol(name) with Type {
+class VarSymbol(override val name: String, val vType: Type) extends Symbol(name, vType) with Type {
     override def toString(): String = {
     s"$name: ${vType}"
   }

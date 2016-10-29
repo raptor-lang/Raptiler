@@ -1,7 +1,6 @@
 package raptorscript.interpreter
 
 import raptorscript.symbol._
-import raptorscript.IToken
 import raptorscript.memory.MemorySpace
 
 

@@ -76,5 +76,5 @@ case class Program(
 ) extends Node
 
 abstract case class BltInFun() extends Node {
-  def exec(intrpr: Interpreter, self: RObject)
+  def exec(intrpr: Interpreter, self: RObject): Unit
 }

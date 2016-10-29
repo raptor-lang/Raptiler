@@ -1,6 +1,6 @@
 package raptorscript
 
-import scala.collection.mutable.{ ArrayBuffer, Queue }
+import scala.collection.mutable.Queue
 import scala.language.implicitConversions
 
 class Lexer(var text: String) {
