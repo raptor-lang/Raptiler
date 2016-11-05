@@ -1,7 +1,6 @@
 package raptorscript.ast
 
 import raptorscript.{IToken, Token}
-import raptorscript.interpreter.{Interpreter, RObject}
 
 case class BinOp(
   left: Node,
@@ -74,7 +73,3 @@ case class Block(list: List[Node]) extends Node
 case class Program(
   children: List[Node]
 ) extends Node
-
-abstract case class BltInFun() extends Node {
-  def exec(intrpr: Interpreter, self: RObject): Unit
-}

@@ -3,7 +3,6 @@ package raptorscript.symbol
 import raptorscript.ast.NodeVisitor
 import raptorscript.ast.Node
 import raptorscript.ast._
-import raptorscript.RaptorError
 
 class SymbolTableBuilder(val symtab: SymbolTable) extends NodeVisitor {
 

@@ -4,7 +4,6 @@ import raptorscript.symbol._
 import raptorscript.RaptorError
 import raptorscript.IToken
 import raptorscript.Tokens._
-import raptorscript.memory.MemorySpace
 
 abstract class RPrimitive[T](override val oType: BuiltInTypeSymbol, val value: T) extends RObject(oType) {
 

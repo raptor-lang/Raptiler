@@ -1,23 +1,34 @@
 package raptorscript
 
 import Console._
+import java.io.{ BufferedOutputStream, FileOutputStream }
 
-import raptorscript.interpreter.Interpreter
+import raptorscript.compiler.Compiler
 
 object Cli extends App {
 
-  val interpreter = new Interpreter()
+  val compiler = new Compiler()
   println(s"$BOLD${GREEN}Welcome to$BOLD$MAGENTA RaptorScript$BOLD$GREEN - When you see it, its already too late$RESET")
 
   if (args.length > 0) {
-    runFile(args(0))
-  }
+    if (args(0) == "-i") {
+      if (args.length > 1)
+        runFile(args(1))
+      interactive()
+    } else {
+      writeFile(args(0) + ".crapt", runFile(args(0)))
+    }
+  } 
 
-  interactive()
-
-  def runFile(path: String): Unit = {
+  def runFile(path: String): Array[Short] = {
     val text = io.Source.fromFile(path).mkString
     run(text)
+  }
+
+  def writeFile(path: String, bytes: Array[Short]): Unit = {
+    val bos = new BufferedOutputStream(new FileOutputStream(path))
+    Stream.continually(bos.write(bytes.map(_.toByte)))
+    bos.close()
   }
 
   def interactive(): Unit = {
@@ -32,22 +43,21 @@ object Cli extends App {
           }
         }
       } else
-        run(text)
+        print(run(text))
     }
   }
 
-  def run(text: String): Unit = {
-    if (text != null) {
-      try {
-        val parser = new Parser(new Lexer(text))
-        val result = interpreter.interpret(parser)
-        print(result)
-      } catch {
-        case e: Throwable =>
-          print(s"\n$BOLD$RED----- ERROR -----$RESET\n")
-          print(e.toString)
-          print(s"\n$BOLD$RED-----------------$RESET\n")
-      }
+  def run(text: String): Array[Short] = {
+    try {
+      val parser = new Parser(new Lexer(text))
+      val result = compiler.compile(parser)
+      result
+    } catch {
+      case e: Throwable =>
+        print(s"\n$BOLD$RED----- ERROR -----$RESET\n")
+        print(e.toString)
+        print(s"\n$BOLD$RED-----------------$RESET\n")
+        Array[Short]()
     }
   }
 }

@@ -4,13 +4,20 @@ import scala.collection.mutable.LinkedHashMap
 
 
 trait Scope {
+
+  var sIndex = 0
+
   val parentScope: Option[Scope] = None
 
   val symbols: LinkedHashMap[String, Symbol] = LinkedHashMap()
 
   def lookup(name: String): Option[Symbol] = symbols.get(name).orElse(parentScope.map(_.lookup(name).orNull))
 
-  def define(symbol: Symbol): Unit = symbols.put(symbol.name, symbol)
+  def define(symbol: Symbol): Unit = {
+    symbol.index = if (symbols.contains(symbol.name)) symbols.get(symbol.name).get.index else symbols.size
+    symbol.scope = this
+    symbols.put(symbol.name, symbol)
+  }
 
   override def toString(): String = {
     val sbs: String = symbols.map(_._2.toString()).mkString(", ")

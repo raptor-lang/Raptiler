@@ -3,6 +3,8 @@ package raptorscript.symbol
 import raptorscript.ast.Node
 
 class Symbol(val name: String, val typ: Type) {
+  var index = 0
+  var scope: Scope = null
 }
 
 trait Type extends Scope {
