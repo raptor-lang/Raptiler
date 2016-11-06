@@ -62,13 +62,16 @@ class Compiler() {
       case n: LitteralString =>
         // bytes ++= OPs.LOADCONST()
       case n: BinOp => {
-        visit(n.left)
         visit(n.right)
+        visit(n.left)
         n.token.value match {
           case Some("+") => bytes ++= OPs.ADD()
           case Some("-") => bytes ++= OPs.SUBTRACT()
           case Some("*") => bytes ++= OPs.MULTIPLY()
           case Some("/") => bytes ++= OPs.DIVIDE()
+          case Some(">") => bytes ++= OPs.COMP_GT()
+          case Some("<") => bytes ++= OPs.COMP_LT()
+          case Some("==") => bytes ++= OPs.COMP_EQ()
         }
       }
       case n: Program => {
