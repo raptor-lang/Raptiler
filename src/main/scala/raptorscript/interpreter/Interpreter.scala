@@ -27,11 +27,13 @@ class Compiler() {
       case n: VarDecl => {
         if (n.value.isDefined) {
           val symb = scopeStack.lookup(n.name).get
+          visit(n.value.get)
           bytes ++= OPs.STORE(symb.index)
         }
       }
       case n: VarAssign => {
         val symb = scopeStack.lookup(n.name).get
+        visit(n.value)
         bytes ++= OPs.STORE(symb.index)
       }
       case n: VarAccess => {
