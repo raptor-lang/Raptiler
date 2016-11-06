@@ -26,8 +26,10 @@ object Cli extends App {
   }
 
   def writeFile(path: String, bytes: Array[Short]): Unit = {
+    // TODO: this header is a hackedyhack
+    val header = Array[Short](0x5A, 0xB7, 0x05,0x00,0x00,0x00,0x00,0x08)
     val bos = new BufferedOutputStream(new FileOutputStream(path))
-    Stream.continually(bos.write(bytes.map(_.toByte)))
+    Stream.continually(bos.write(header.++(bytes).map(_.toByte)))
     bos.close()
   }
 
