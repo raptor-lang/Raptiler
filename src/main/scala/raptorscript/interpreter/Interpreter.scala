@@ -80,8 +80,8 @@ class Compiler() {
         bytes = ArrayBuffer()
         visit(n.block)
         val newBytes = bytes
+        val dist = bytes.length + 1 + (if (n.elseBlock.isDefined) OPs.RELJUMP.length else 0)
         bytes = oldBytes
-        val dist = bytes.length + (if (n.elseBlock.isDefined) 2 else 1)
         bytes ++= OPs.RELJUMP_EQ(dist)
         bytes ++= newBytes
         if (n.elseBlock.isDefined) {
@@ -102,7 +102,7 @@ class Compiler() {
 }
 
 case class Instruction(name: String, opcode: Short, args: InstructionArg*) {
-  val length = 1 + args.foldLeft(0)((b,a) => b + a.length)
+  val length: Int = 1 + args.foldLeft(0)((b,a) => b + a.length)
 
   def apply(argvs: BigInt*): Array[Short] = {
     val xs = ArrayBuffer[Short](opcode)

@@ -1,1 +1,4 @@
-var x: INT = (3 - 2) * 2 + 3
+if 0
+  print(0)
+else
+  print(1)
