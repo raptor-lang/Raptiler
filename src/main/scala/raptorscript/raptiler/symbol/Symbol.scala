@@ -35,7 +35,6 @@ class FunSymbol(
   override def toString(): String = {
     s"$name: ${retType}"
   }
-
 }
 
 class VarSymbol(override val name: String, val vType: Type) extends Symbol(name, vType) with Type {

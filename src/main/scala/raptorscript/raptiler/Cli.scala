@@ -28,9 +28,9 @@ object Cli extends App {
   }
 
   def writeFile(path: String, bytes: Array[Short]): Unit = {
-    val header = Array[Short](0x5A, 0xB7, 0x05,0x00,ByteUtils.byteArray(compiler.globCount.toShort, 4):_*)
+    val header: Array[Short] = Array[Short](0x5A, 0xB7, 0x05,0x00) ++ ByteUtils.byteArray(compiler.globCount, 4)
     val bos = new BufferedOutputStream(new FileOutputStream(path))
-    Stream.continually(bos.write(header.++(bytes).++(OPs.HALT()).map(_.toByte)))
+    Stream.continually(bos.write((header ++ compiler.constTab.bytes ++ Array[Short](0xED) ++ bytes ++ OPs.HALT()) map (_.toByte)))
     bos.close()
   }
 

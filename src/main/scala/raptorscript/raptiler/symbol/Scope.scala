@@ -11,6 +11,8 @@ trait Scope {
 
   val symbols: LinkedHashMap[String, Symbol] = LinkedHashMap()
 
+  protected def nextId: Int = symbCount
+
   def lookup(name: String): Option[Symbol] = symbols.get(name).orElse(parentScope.map(_.lookup(name).orNull))
 
   def define(symbol: Symbol): Unit = {
@@ -18,7 +20,7 @@ trait Scope {
       if (symbols.contains(symbol.name)) {
         symbol.index = symbols.get(symbol.name).get.index
       } else {
-        symbol.index = symbCount
+        symbol.index = nextId
         symbCount += 1
       }
     }
@@ -38,6 +40,8 @@ class LocalScope(_parentScope: Scope) extends Scope {
 
 class FunScope(val funSymbol: FunSymbol) extends Scope {
   override val parentScope = Some(funSymbol)
+
+  override protected def nextId: Int = funSymbol.symbCount + symbCount
 }
 
 object GlobalScope extends Scope {
