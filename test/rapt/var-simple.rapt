@@ -1,0 +1,3 @@
+# Store var and load it again
+var x: INT = 2
+x

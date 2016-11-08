@@ -1,0 +1,6 @@
+var a: INT = 1
+var b: INT = 2
+var c: INT = 3
+var d: INT = 4
+var e: INT = 5
+var f: INT = 6
