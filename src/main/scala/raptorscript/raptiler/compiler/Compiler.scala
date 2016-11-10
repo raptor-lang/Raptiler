@@ -58,7 +58,7 @@ class Compiler() {
         scopeStack.pop()
         scopeStack.pop()
         bytes = oldBytes
-        fs.index = constTab.defineFunc(fs.symbCount, fs.bodyScope.symbCount, newBytes.toArray)
+        fs.index = constTab.defineFunc(fs.name, fs.symbCount, fs.bodyScope.symbCount, newBytes.toArray)
       }
       case n: FunCall => {
         if (n.name == "print") {

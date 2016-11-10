@@ -10,12 +10,13 @@ class ConstantsTable {
 
   var funCount: Int = 0
 
-  def defineFunc(argCount: Int, locals: Int, body: Array[Short]): Int = {
+  def defineFunc(name: String, argCount: Int, locals: Int, body: Array[Short]): Int = {
     _bytes += 0xF0
-    _bytes ++= ByteUtils.byteArray(funCount, 4)
-    _bytes ++= ByteUtils.byteArray(argCount, 4)
-    _bytes ++= ByteUtils.byteArray(locals, 4)
-    _bytes ++= ByteUtils.byteArray(body.length + 1, 4) // + 1 for return op
+    _bytes ++= ByteUtils.byteArray(name)
+    _bytes ++= ByteUtils.byteArray(funCount)
+    _bytes ++= ByteUtils.byteArray(argCount)
+    _bytes ++= ByteUtils.byteArray(locals)
+    _bytes ++= ByteUtils.byteArray(body.length + 1) // + 1 for return op
     _bytes ++= body
     _bytes ++= OPs.RETURN()
     funCount += 1
