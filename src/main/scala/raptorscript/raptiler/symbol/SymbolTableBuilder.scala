@@ -30,7 +30,7 @@ class SymbolTableBuilder(val symtab: SymbolTable) extends NodeVisitor {
         symtab.push(funSymbol)
         n.args.list.foreach(visit)
         symtab.push(funSymbol.bodyScope)
-        n.body.list.foreach(visit)
+        visit(n.body)
         symtab.pop()
         symtab.pop()
       }

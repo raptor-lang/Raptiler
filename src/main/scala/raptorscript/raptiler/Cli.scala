@@ -46,7 +46,7 @@ object Cli extends App {
           }
         }
       } else
-        print(run(text).map(_.toHexString).mkString(" "))
+        print(run(text).map(_.intValue().toHexString).mkString(" "))
     }
   }
 

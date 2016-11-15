@@ -168,7 +168,10 @@ object Lexer {
     "if",
     "else",
     "true",
-    "false"
+    "false",
+    "loop",
+    "while",
+    "for"
   )
 }
 

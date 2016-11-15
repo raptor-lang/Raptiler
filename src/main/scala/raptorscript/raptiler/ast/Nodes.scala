@@ -30,6 +30,10 @@ case class LitteralString(
   token: Token[String]
 ) extends Node { val value = token.value.get }
 
+case class LitteralArray(
+  token: Token[Array[Any]]
+) extends Node { val value = token.value.get}
+
 case class VarAccess(
   nameToken: Token[String]
 ) extends Node { val name = nameToken.value.get }
@@ -58,13 +62,13 @@ case class FunDecl(
   nameToken: Token[String],
   typeToken: Token[String],
   args: FunVars,
-  body: Block
+  body: Node
 ) extends Node {
   val name = nameToken.value.get
   val retType = typeToken.value.get
 }
 
-case class IfStatement(cond: Node, block: Block, elseBlock: Option[Block]) extends Node
+case class IfStatement(cond: Node, block: Node, elseBlock: Option[Node]) extends Node
 
 case class FunVars(list: List[VarDecl]) extends Node
 
